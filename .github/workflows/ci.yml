@@ -1,0 +1,28 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cxx: [g++, clang++]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake --preset dev -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+      - name: Build
+        run: cmake --build --preset dev -j
+      - name: Test
+        run: ctest --preset dev
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        preset: [tsan, asan]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }} -j
+      - run: ctest --preset ${{ matrix.preset }}
